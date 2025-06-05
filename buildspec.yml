@@ -63,8 +63,8 @@ phases:
                 - echo "Build completed on `date`"
           
             artifacts:
-            files:
-              - appspec.yml
-              - scripts/**/*
-              - '**/*'
-            base-directory: '.'
+              files:
+               - appspec.yml
+               - scripts/**/*
+               - '**/*'
+              base-directory: '.'
