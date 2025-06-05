@@ -1,16 +1,14 @@
 version: 0.0
 os: linux
 files:
-  - source: /app
-    destination: /opt
+  - source: /
+    destination: /tmp
 hooks:
-  BeforeInstall:
-    - location: codedeploy/BeforeInstall.sh
-  AfterInstall:
-    - location: codedeploy/AfterInstall.sh
   ApplicationStop:
-    - location: codedeploy/ApplicationStop.sh
+    - location: stop.sh
+      timeout: 60
+      runas: root
   ApplicationStart:
-    - location: codedeploy/ApplicationStart.sh
-  ValidateService:
-    - location: codedeploy/ValidateService.sh      
+    - location: run.sh
+      timeout: 60
+      runas: root
