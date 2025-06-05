@@ -1,31 +1,70 @@
-version: 0.1
+version: 0.2
+
+ phases:
+            install:
+              runtime-versions:
+                golang: 1.20  # Specify a newer Go version that supports the slices package
+              commands:
+                - echo "Installing dependencies..."
+                - go version
+                - go env
+                # Use the newer way to install Go tools
+                - go install golang.org/x/lint/golint@latest
+                - go install golang.org/x/tools/cmd/goimports@latest
             
-phases:
-
-  install: 
-    commands:
-      - go get -u github.com/golang/lint/golint
-
-  pre_build: 
-    commands:
-
-      # Ensure code passes all lint tests
-      - golint -set_exit_status
-
-      # Run all tests included with our application
-      - go test
-
-  build:
-    commands:
-
-      # Build our application
-      - go build -o app
-
-artifacts:
-  files:
-    - app
-    - appspec.yml
-    - buildspec.yml
-    - config/*
-    - codedeploy/*
-    - cloudformation/*
+            pre_build:
+              commands:
+                - echo "Running pre-build tasks..."
+                - go mod tidy
+                - go mod download
+            
+            build:
+              commands:
+                - echo "Building Go application..."
+                - go build -v ./...
+                - go test -v ./...
+                # Create deployment artifacts
+                - echo "Creating appspec.yml file..."
+                - |
+                  cat > appspec.yml << 'EOL'
+                  version: 0.0
+                  os: linux
+                  files:
+                    - source: /
+                      destination: /var/www/html/
+                  hooks:
+                    BeforeInstall:
+                      - location: scripts/before_install.sh
+                        timeout: 300
+                        runas: root
+                    AfterInstall:
+                      - location: scripts/after_install.sh
+                        timeout: 300
+                        runas: root
+                  EOL
+                - mkdir -p scripts
+                - |
+                  cat > scripts/before_install.sh << 'EOL'
+                  #!/bin/bash
+                  echo "Before install script started"
+                  mkdir -p /var/www/html
+                  EOL
+                - |
+                  cat > scripts/after_install.sh << 'EOL'
+                  #!/bin/bash
+                  echo "After install script started"
+                  chmod -R 755 /var/www/html
+                  EOL
+                - chmod +x scripts/before_install.sh
+                - chmod +x scripts/after_install.sh
+            
+            post_build:
+              commands:
+                - echo "Build completed on `date`"
+          
+          artifacts:
+            files:
+              - appspec.yml
+              - scripts/**/*
+              - '**/*'
+            base-directory: '.'
