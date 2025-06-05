@@ -1,37 +1,21 @@
-version: 0.22
+version: 1.0
 
 phases:
   install:
-  runtime-versions:
-  golang: 1.20  # Specify a newer Go version that supports the slices package
-  commands:
-    - echo "Installing dependencies..."
-    - go version
-    - go env
-                # Use the newer way to install Go tools
-    - go install golang.org/x/lint/golint@latest
-    - go install golang.org/x/tools/cmd/goimports@latest
-            
-pre_build:
-  commands:
-    - echo "Running pre-build tasks..."
-    - go mod tidy
-    - go mod download
-            
-
-build:
-  commands:
-    # Build our application
-    - go build -o app
-    - echo "Building Go application...
-    - go build -v ./...
-    - go test -v ./...
-
-artifacts:               
+    runtime-versions:
+      python: 3.11
+    commands:
+      - echo Installing dependencies...
+      - pip install -r requirements.txt
+  build:
+    commands:
+      - echo Running unit tests...
+      - python3 -m unittest test_app.py
+artifacts:
   files:
-    - app
+    - app.py
+    - requirements.txt
+    - run.sh
+    - stop.sh
     - appspec.yml
-    - buildspec.yml
-    - config/*
-    - codedeploy/*
-    - cloudformation/*
+  name: output-artifact
